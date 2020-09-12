@@ -57,7 +57,11 @@
   padding: 2px 0;
   display: inline-block;
 }
-
+.RichEditor-colorButton {
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+}
 .RichEditor-activeButton {
   color: #5890ff;
 }

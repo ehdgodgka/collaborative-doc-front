@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Editor, EditorState, RichUtils, getDefaultKeyBinding } from 'draft-js';
+import { Editor, EditorState, RichUtils, getDefaultKeyBinding, Modifier } from 'draft-js';
 // import { stateToHTML } from 'draft-js-export-html';
 
 import BlockStyleControls from './BlockStyleControls';
 import InlineStyleControls from './InlineStlyeControls';
+import ColorControls from './ColorControls';
 
 import usePusher from '../hooks/usePusher';
 import { notifyPusher, notifyPusherEditor } from '../services/pusher.js';
@@ -30,7 +31,7 @@ const RichTextEditor = (props) => {
     setEditorState(editorState);
     // call the function to notify Pusher of the new editor state
     notifyPusherEditor(editorState);
-    // notifyPusher(stateToHTML(editorState.getCurrentContent()));
+    //    // notifyPusher(stateToHTML(editorState.getCurrentContent()));
   };
 
   const handleKeyCommand = (command, editorState) => {
@@ -60,6 +61,34 @@ const RichTextEditor = (props) => {
   const toggleInlineStyle = (inlineStyle) => {
     onChange(RichUtils.toggleInlineStyle(editorState, inlineStyle));
   };
+  const toggleColor = (toggledColor) => {
+    const selection = editorState.getSelection();
+    console.log(selection);
+
+    // Let's just allow one color at a time. Turn off all active colors.
+    const nextContentState = Object.keys(colorStyleMap).reduce((contentState, color) => {
+      console.log(contentState, color);
+      return Modifier.removeInlineStyle(contentState, selection, color);
+    }, editorState.getCurrentContent());
+
+    let nextEditorState = EditorState.push(editorState, nextContentState, 'change-inline-style');
+
+    const currentStyle = editorState.getCurrentInlineStyle();
+
+    // Unset style override for current color.
+    if (selection.isCollapsed()) {
+      nextEditorState = currentStyle.reduce((state, color) => {
+        return RichUtils.toggleInlineStyle(state, color);
+      }, nextEditorState);
+    }
+
+    // If the color is being toggled on, apply it.
+    if (!currentStyle.has(toggledColor)) {
+      nextEditorState = RichUtils.toggleInlineStyle(nextEditorState, toggledColor);
+    }
+
+    onChange(nextEditorState);
+  };
 
   useEffect(() => {
     newEditor && setEditorState(newEditor);
@@ -68,6 +97,7 @@ const RichTextEditor = (props) => {
     <div className='RichEditor-root'>
       <BlockStyleControls editorState={editorState} onToggle={toggleBlockType} />
       <InlineStyleControls editorState={editorState} onToggle={toggleInlineStyle} />
+      <ColorControls editorState={editorState} onToggle={toggleColor} />
       <div className={className} onClick={focus}>
         <Editor
           blockStyleFn={getBlockStyle}
@@ -92,9 +122,47 @@ const styleMap = {
     fontFamily: '"Inconsolata", "Menlo", "Consolas", monospace',
     fontSize: 16,
     padding: 2
+  },
+  red: {
+    color: 'rgba(255, 0, 0, 1.0)'
+  },
+  orange: {
+    color: 'rgba(255, 127, 0, 1.0)'
+  },
+  green: {
+    color: 'rgba(0, 180, 0, 1.0)'
+  },
+  blue: {
+    color: 'rgba(0, 0, 255, 1.0)'
+  },
+  indigo: {
+    color: 'rgba(75, 0, 130, 1.0)'
+  },
+  violet: {
+    color: 'rgba(127, 0, 255, 1.0)'
   }
 };
 
+const colorStyleMap = {
+  red: {
+    color: 'rgba(255, 0, 0, 1.0)'
+  },
+  orange: {
+    color: 'rgba(255, 127, 0, 1.0)'
+  },
+  green: {
+    color: 'rgba(0, 180, 0, 1.0)'
+  },
+  blue: {
+    color: 'rgba(0, 0, 255, 1.0)'
+  },
+  indigo: {
+    color: 'rgba(75, 0, 130, 1.0)'
+  },
+  violet: {
+    color: 'rgba(127, 0, 255, 1.0)'
+  }
+};
 function getBlockStyle(block) {
   switch (block.getType()) {
     case 'blockquote':

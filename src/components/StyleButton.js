@@ -4,11 +4,17 @@ const StyleButton = (props) => {
   if (props.active) {
     className += ' RichEditor-activeButton';
   }
+  if (props.type === 'color') className += ' RichEditor-colorButton';
   const onToggle = (e) => {
     e.preventDefault();
+    console.log(props);
     props.onToggle(props.style);
   };
-  return (
+  return props.type === 'color' ? (
+    <div className={className} style={{ backgroundColor: props.style }} onMouseDown={onToggle}>
+      A
+    </div>
+  ) : (
     <span className={className} onMouseDown={onToggle}>
       {props.label}
     </span>
