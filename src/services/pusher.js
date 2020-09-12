@@ -9,10 +9,17 @@ import { convertToRaw } from 'draft-js';
 // };
 
 // send the editor's current state with axios to the server so it can be broadcasted by Pusher
+let socketId;
+
+export const setSocketId = (id) => {
+  socketId = id;
+  console.log(socketId);
+};
 export const notifyPusherEditor = (editorState) => {
   console.log('noti editor');
 
   const selection = editorState.getSelection();
   let text = convertToRaw(editorState.getCurrentContent());
-  axios.post('http://localhost:5000/editor-text', { text, selection });
+  console.log(editorState.getCurrentContent());
+  axios.post('http://localhost:5000/editor-text', { text, socketId, selection });
 };

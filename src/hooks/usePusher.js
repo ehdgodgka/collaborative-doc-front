@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { EditorState, convertFromRaw, SelectionState } from 'draft-js';
 import Pusher from 'pusher-js';
+import { setSocketId } from '../services/pusher';
 
 const usePusher = () => {
   const [text, setText] = useState('');
@@ -11,14 +12,17 @@ const usePusher = () => {
       cluster: 'ap3',
       encrypted: true
     });
+    pusher.connection.bind('connected', () => {
+      setSocketId(pusher.connection.socket_id);
+    });
     const channel = pusher.subscribe('editor');
 
     // listen to 'text-update' events
-    channel.bind('text-update', (data) => {
-      // update the text state with new data
-      console.log('text-update', data);
-      setText(data.text);
-    });
+    // channel.bind('text-update', (data) => {
+    //   // update the text state with new data
+    //   console.log('text-update', data);
+    //   setText(data.text);
+    // });
 
     channel.bind('editor-update', (data) => {
       // create a new selection state from new data
