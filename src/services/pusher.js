@@ -16,10 +16,10 @@ export const setSocketId = (id) => {
   console.log(socketId);
 };
 export const notifyPusherEditor = (editorState) => {
-  console.log('noti editor');
+  console.log('noti editor change');
 
   const selection = editorState.getSelection();
   let text = convertToRaw(editorState.getCurrentContent());
-  console.log(editorState.getCurrentContent());
+  
   axios.post('http://localhost:5000/editor-text', { text, socketId, selection });
 };

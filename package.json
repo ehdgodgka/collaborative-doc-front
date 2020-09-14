@@ -10,6 +10,7 @@
     "babel-polyfill": "^6.26.0",
     "draft-js": "^0.11.7",
     "draft-js-export-html": "^1.4.1",
+    "jsondiffpatch": "^0.4.1",
     "pusher-js": "^7.0.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",

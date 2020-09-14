@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Editor, EditorState, RichUtils, getDefaultKeyBinding, Modifier } from 'draft-js';
+import { Editor, EditorState, RichUtils, getDefaultKeyBinding, Modifier, convertToRaw } from 'draft-js';
+import { create } from 'jsondiffpatch';
 // import { stateToHTML } from 'draft-js-export-html';
 
 import BlockStyleControls from './BlockStyleControls';
@@ -13,6 +14,7 @@ import './RichTextEditor.css';
 import 'draft-js/dist/Draft.css';
 
 const RichTextEditor = (props) => {
+  const jsondiffpatch = create();
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
   // const [text, setText] = useState('');
   const { editor: newEditor } = usePusher();
@@ -27,10 +29,17 @@ const RichTextEditor = (props) => {
   const editorRef = useRef(null);
   const focus = () => editorRef.current.focus();
 
-  const onChange = (editorState) => {
-    setEditorState(editorState);
+  const onChange = (updateEditorState) => {
+    const contentBefore = convertToRaw(editorState.getCurrentContent());
+    const contentAfter = convertToRaw(updateEditorState.getCurrentContent());
+    const delta = jsondiffpatch.diff(contentBefore, contentAfter);
+
+    setEditorState(updateEditorState);
     // call the function to notify Pusher of the new editor state
-    notifyPusherEditor(editorState);
+
+    if (delta) {
+      notifyPusherEditor(updateEditorState);
+    }
     //    // notifyPusher(stateToHTML(editorState.getCurrentContent()));
   };
 
@@ -67,7 +76,6 @@ const RichTextEditor = (props) => {
 
     // Let's just allow one color at a time. Turn off all active colors.
     const nextContentState = Object.keys(colorStyleMap).reduce((contentState, color) => {
-      console.log(contentState, color);
       return Modifier.removeInlineStyle(contentState, selection, color);
     }, editorState.getCurrentContent());
 
